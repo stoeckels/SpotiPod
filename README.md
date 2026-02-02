@@ -103,6 +103,6 @@ For an individual project, all roles are handled by a single developer.
 ## Project Links
 
 - Documentation: TBD  
-- Presentation: TBD  
+- Presentation: https://github.com/stoeckels/SpotiPod/docs/presentation/ppp.md
 
 ---
