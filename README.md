@@ -6,11 +6,7 @@ SpotiPod is a lightweight application that bridges modern music streaming with l
 
 ## Problem Domain and Motivation
 
-Modern music platforms prioritize streaming, which often removes the sense of ownership over music and requires constant internet access. While services like Spotify make music discovery and playlist management convenient, they limit how and where music can be enjoyed.
-
-Despite being considered obsolete, physical music devices such as iPods still offer a unique listening experience: distraction-free playback, long battery life, and a tangible connection to music. However, there is currently no simple and accessible way to transfer modern Spotify playlists onto these devices.
-
-SpotiPod addresses this gap by enabling users to preserve their curated Spotify playlists and enjoy them on physical hardware, combining modern convenience with nostalgic technology.
+Despite being considered obsolete, physical music devices such as iPods still offer a unique listening experience: distraction-free playback, and a tangible connection to music. However, there is currently no simple and accessible way to transfer modern Spotify playlists onto these devices. SpotiPod addresses this gap by enabling users to preserve their curated Spotify playlists and enjoy them on physical hardware, combining modern convenience with nostalgic technology.
 
 ---
 
@@ -106,8 +102,6 @@ For an individual project, all roles are handled by a single developer.
 
 ## Project Links
 
-- Source Code: TBD  
-- Tests: TBD  
 - Documentation: TBD  
 - Presentation: TBD  
 
