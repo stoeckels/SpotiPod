@@ -65,14 +65,30 @@ paginate: true
 
 ## Implementation Plan
 
-- **Sprint 1:**
-  - Spotify API integration
-  - Basic audio conversion
-  - Simple UI for input and progress
-- **Sprint 2:**
-  - Metadata preservation
-  - File organization improvements
-  - Enhanced error handling and logging
+Sprint 1 (Required Features):
+
+1. Fetch track metadata from Spotify for formatting locally
+R.1. Integration with Spotify API for song, album, artist, playlist endpoints
+R.2 Format that metadata into usable objects for local
+2. Find available music formats based off of track metadata.
+R.1 yt-dlp must be able to download formats based on ISRC metadata
+R.2 Apply the metadata from Spotify to the local music file
+R.3 Formats must be able to be stored locally in an efficient matter
+
+---
+
+Sprint 2 (More non-trivial features): 
+
+3. Automatic integration with Apple Music syncing to iPod
+R.1 User must have Apple Music or iTunes installed in order to interface with iPod
+R.2 Files must be able to be moved to specific directories for syncing.
+
+4. A clean UI/UX experience through a deployed App
+R.1 App must be easy to navigate and have good modularity.
+R.2 Efficient error handing for user error or app error.
+R.3 Settings must be readily available to the user for format or general app controls.
+R.4 App must be packaged via Electron, or a similar technology.
+
 
 ---
 
@@ -83,16 +99,6 @@ paginate: true
 - Edge case tests (invalid links, empty playlists)
 - Manual testing for UI and device syncing
 
----
-
-## Timeline
-
-- **Weeks 1-2:** Core backend and Spotify integration
-- **Weeks 3-4:** Audio conversion and UI prototype
-- **Weeks 5-6:** Metadata, organization, and robust error handling
-- **Weeks 7-8:** Testing, documentation, and final polish
-
----
 
 ## Summary
 
