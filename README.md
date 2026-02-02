@@ -10,32 +10,28 @@ Despite being considered obsolete, physical music devices such as iPods still of
 
 ---
 
-## Features
+## Features and Requirements
 
-- Convert Spotify track or playlist links into playable audio files  
-- Support for common audio formats compatible with iPods (e.g., MP3, AAC)  
-- Preserve metadata such as song title, artist, album, and album art  
-- Organized local file storage by playlist or artist  
-- Progress feedback during the conversion process  
-- Graceful handling of invalid or private links  
+Sprint 1 (Required Features):
+1. Fetch track metadata from Spotify for formatting locally
+- R.1 Integration with Spotify API for song, album, artist, playlist endpoints
+- R.2 Format that metadata into usable objects for local 
 
----
+2. Find available music formats based off of track metadata. 
+- R.1 yt-dlp must be able to download formats based on ISRC metadata
+- R.2 Apply the metadata from Spotify to the local music file
+- R.3 Formats must be able to be stored locally in an efficient matter
 
-## Requirements
+Sprint 2 (More non-trivial features):
+3. Automatic integration with Apple Music syncing to iPod
+- R.1 User must have Apple Music or iTunes installed in order to interface with iPod
+- R.2 Files must be able to be moved to specific directories for syncing.
 
-### Functional Requirements
-
-- Users can input a Spotify track or playlist URL  
-- The system retrieves track metadata using the Spotify API  
-- Tracks are converted into playable audio files  
-- Converted files are stored locally in an organized directory structure  
-- Invalid or unsupported links are handled without crashing the application  
-
-### Non-Functional Requirements
-
-- The application should perform conversions efficiently  
-- The user interface should be simple and intuitive  
-- Errors should be logged for debugging and testing  
+4. A clean UI/UX experience through a deployed App 
+- R.1 App must be easy to navigate and have good modularity.
+- R.2 Efficient error handing for user error or app error.
+- R.3 Settings must be readily available to the user for format or general app controls.
+- R.4 App must be packaged via Electron, or a similar technology.
 
 ---
 
@@ -58,16 +54,13 @@ The application follows a modular design to allow independent development and te
 #### Track
 
 - track_id  
-- title  
-- artist  
-- album  
-- duration  
+- track metadata
 - file_path  
 
 #### Playlist
 
 - playlist_id  
-- name  
+- name
 - list of tracks  
 
 ---
