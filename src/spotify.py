@@ -1,7 +1,20 @@
 import aiohttp
 import time
 import orjson as json
+import re
 from base64 import b64encode
+
+from .utils.objects import Track, Album, Artist, Playlist
+
+type_re = re.compile(
+    r"^https?://open\.spotify\.com/(track|playlist|artist|album)/([A-Za-z0-9]{22})(?:\?.*)?$"
+)
+
+def parse_spotify_url(url: str):
+    m = type_re.match(url)
+    if not m:
+        return None
+    return {"type": m.group(1), "id": m.group(2)}
 
 API_TOKEN_URL = "https://accounts.spotify.com/api/token"
 API_URL = "https://api.spotify.com/v1/{type}s/{id}"
@@ -15,7 +28,7 @@ class Spotify:
         self._api_headers: dict  = None
         self._auth_token = b64encode(f"{client_id}:{client_secret}".encode())
         self._grant_headers = {"Authorization": f"Basic {self._auth_token.decode()}"}
-
+    
     async def _get_session(self):
         if self.session is None:
             self.session = aiohttp.ClientSession()
@@ -32,29 +45,53 @@ class Spotify:
         }
 
     async def _api_expiry_check(self):
+        if not self.session:
+            await self._get_session()
         if not self._api_headers or time.time() >= self._api_expiry:
             await self._fetch_api_bearer()
-
-    async def search(self, type: str, limit: int, query: str) -> dict:
+    
+    async def search(self, uri: str) -> dict:
         """Searches for Spotify items by type either "track", "album", or "artist"."""
         await self._api_expiry_check()
-        session = await self._get_session()
-        resp = await session.get(API_SEARCH_URL.format(type=type, limit=limit, query=query), headers=self._api_headers)
+        parsed = parse_spotify_url(uri)
+        if not parsed:
+            raise ValueError("Invalid Spotify URL")
+
+        resource_type = parsed["type"]
+        resource_id = parsed["id"]
+
+        resp = await self.session.get(
+            API_URL.format(type=resource_type, id=resource_id),
+            headers=self._api_headers
+        )
+
+        resp.raise_for_status()
         data = await resp.json(loads=json.loads)
-        return data
-    
-    async def track_by_id(self, track_id: str) -> dict:
-        """Fetch Spotify track data from Spotify API."""
-        await self._api_expiry_check()
-        session = await self._get_session()
-        resp = await session.get(API_URL.format(type="track", id=track_id), headers=self._api_headers)
-        data = await resp.json(loads=json.loads)
-        return data
-    
-    async def get_artist(self, artist_id: str) -> dict:
-        """Fetch Spotify artist data from Spotify API."""
-        await self._api_expiry_check()
-        session = await self._get_session()
-        resp = await session.get(API_URL.format(type="artist", id=artist_id), headers=self._api_headers)
-        data = await resp.json(loads=json.loads)
-        return data
+
+        if resource_type == "playlist":
+            tracks = []
+            playlist_data = data
+            page = playlist_data["tracks"]
+
+            # Spotify paginates playlist tracks, so we need to fetch them all
+            while True:
+                for item in page["items"]:
+                    tracks.append(Track(item["track"]))
+                if page["next"] is None:
+                    break
+                resp = await self.session.get(page["next"], headers=self._api_headers)
+                resp.raise_for_status()
+                page = await resp.json(loads=json.loads)
+            return Playlist(playlist_data, tracks)
+        
+        parser_map = {
+            "track": Track,
+            "album": Album,
+            "artist": Artist,
+        }
+
+        parser_class = parser_map.get(data.get("type"))
+        if not parser_class:
+            return data
+
+        return parser_class(data)

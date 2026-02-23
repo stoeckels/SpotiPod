@@ -1,33 +1,66 @@
+from typing import List
+from typing import Optional
+
+__all__ = (
+    "Track",
+    "Playlist",
+    "Album",
+    "Artist",
+)
+
+
 class Track:
-    def __init__(self, raw: dict):
-        self.id = raw["id"]
-        self.name = raw["name"]
-        self.duration_ms = raw["duration_ms"]
-        self.explicit = raw["explicit"]
-        self.popularity = raw["popularity"]
-        self.album_id = raw["album"]["id"]
-        self.artists = [Artist(artist) for artist in raw["artists"]]
-        self.isrc = raw["external_ids"]["isrc"]
+    def __init__(self, data: dict, image: Optional[str] = None) -> None:
+        self.name: str = data["name"]
+        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
+        self.length: float = data["duration_ms"]
+        self.id: str = data["id"]
 
-class Album:
-    def __init__(self, raw: dict):
-        self.id = raw["id"]
-        self.name = raw["name"]
-        self.release_date = raw["release_date"]
-        self.total_tracks = raw["total_tracks"]
-        self.tracks = [Track(track) for track in raw["tracks"]["items"]]
-        self.artist_ids = [artist["id"] for artist in raw["artists"]]
+        self.isrc: Optional[str] = None
+        if data.get("external_ids"):
+            self.isrc = data["external_ids"]["isrc"]
 
-class Artist:
-    def __init__(self, raw: dict):
-        self.id = raw["id"]
-        self.name = raw["name"]
+        self.image: Optional[str] = image
+        if data.get("album") and data["album"].get("images"):
+            self.image = data["album"]["images"][0]["url"]
+
+        self.uri: Optional[str] = None
+        if not data["is_local"]:
+            self.uri = data["external_urls"]["spotify"]
 
 
 class Playlist:
-    def __init__(self, raw: dict):
-        self.id = raw["id"]
-        self.name = raw["name"]
-        self.description = raw["description"]
-        self.owner_id = raw["owner"]["id"]
-        self.tracks = [Track(track["track"]) for track in raw["tracks"]["items"]]
+
+    def __init__(self, data: dict, tracks: List[Track]) -> None:
+        self.name: str = data["name"]
+        self.tracks = tracks
+        self.owner: str = data["owner"]["display_name"]
+        self.total_tracks: int = data["tracks"]["total"]
+        self.id: str = data["id"]
+        if data.get("images") and len(data["images"]):
+            self.image = data["images"][0]["url"]
+        else:
+            self.image = self.tracks[0].image
+        self.uri = data["external_urls"]["spotify"]
+
+
+class Album:
+    def __init__(self, data: dict) -> None:
+        self.name: str = data["name"]
+        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
+        self.image: str = data["images"][0]["url"]
+        self.tracks = [Track(track, image=self.image) for track in data["tracks"]["items"]]
+        self.total_tracks: int = data["total_tracks"]
+        self.id: str = data["id"]
+        self.uri: str = data["external_urls"]["spotify"]
+
+
+class Artist:
+    def __init__(self, data: dict, tracks: dict) -> None:
+        self.name: str = (
+            f"Top tracks for {data['name']}"
+        )
+        self.image: str = data["images"][0]["url"]
+        self.tracks = [Track(track, image=self.image) for track in tracks]
+        self.id: str = data["id"]
+        self.uri: str = data["external_urls"]["spotify"]

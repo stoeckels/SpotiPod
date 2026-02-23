@@ -17,10 +17,10 @@ class Client:
             return fastapi.responses.FileResponse("static/templates/index.html", media_type="text/html")
         
         #Base for future frontend impementation
-        @self.app.get("/fetch/{uri}")
-        async def fetch(uri: str):
+        @self.app.get("/search/{uri}")
+        async def search(uri: str):
             try:
-                results = await self.spotify.fetch(uri)
+                results = await self.spotify.search(uri)
                 return results
             except Exception as e:
                 return JSONResponse(status_code=500, content={"error": str(e)})
