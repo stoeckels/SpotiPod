@@ -12,7 +12,7 @@ Despite being considered obsolete, physical music devices such as iPods still of
 
 ## Features and Requirements
 
-Sprint 1 (Required Features):
+Sprint 1 (Required Features) (Finished):
 1. Fetch track metadata from Spotify for formatting locally
 - R.1 Integration with Spotify API for song, album, artist, playlist endpoints
 - R.2 Format that metadata into usable objects for local 
@@ -98,7 +98,7 @@ For an individual project, all roles are handled by a single developer.
 
 ## Project Links
 
-- Documentation: TBD  
+- Documentation: https://github.com/stoeckels/SpotiPod/tree/main/docs
 - Presentation: https://github.com/stoeckels/SpotiPod/docs/presentation/ppp.md
 
 ---

@@ -7,15 +7,15 @@ title: Sprint 1 Retrospective
 
 **Sprint 1 Metrics**
 
-- LoC: 800
-- Total number of features for this sprint: 4
-    - Number of features completed: 4
-- Total number of requirements for this sprint: 11
-    - Number of team requirements completed: 11
+- LoC: 306
+- Total number of features for this sprint: 2
+    - Number of features completed: 2
+- Total number of requirements for this sprint: 5
+    - Number of team requirements completed: 5
 - Burndown rate for the features = 100%
-  - (4 / 4) × 100%
+  - (2 / 2) × 100%
 - Burndown rate for the requirements = 100%
-  - (11 / 11) × 100%
+  - (5 / 5) × 100%
 
 ---
 
