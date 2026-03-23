@@ -8,7 +8,6 @@ __all__ = (
     "Artist",
 )
 
-
 class Track:
     def __init__(self, data: dict, image: Optional[str] = None) -> None:
         self.name: str = data["name"]
@@ -53,7 +52,9 @@ class Album:
         self.total_tracks: int = data["total_tracks"]
         self.id: str = data["id"]
         self.uri: str = data["external_urls"]["spotify"]
-
+        self.upc: Optional[str] = None
+        if data.get("external_ids"):
+            self.upc = data["external_ids"].get("upc")
 
 class Artist:
     def __init__(self, data: dict, tracks: dict) -> None:

@@ -28,7 +28,7 @@ class Spotify:
         self._api_headers: dict  = None
         self._auth_token = b64encode(f"{client_id}:{client_secret}".encode())
         self._grant_headers = {"Authorization": f"Basic {self._auth_token.decode()}"}
-    
+
     async def _get_session(self):
         if self.session is None:
             self.session = aiohttp.ClientSession()
