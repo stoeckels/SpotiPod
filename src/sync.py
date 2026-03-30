@@ -43,7 +43,7 @@ def _ensure_temp_dir() -> Path:
 	return temp_dir
 
 
-def _download_url(url: str, temp_dir: Path) -> None:
+def _handle_metadata(file: Path, track: Track) -> None:
 	if not url.strip():
 		raise ValueError("No URL provided")
 
@@ -93,16 +93,3 @@ def _move_downloads(temp_dir: Path, music_dir: Path | None) -> list[Path]:
 		moved_files.append(dst)
 	return moved_files
 
-
-def sync_url_to_music(url: str) -> list[Path]:
-	temp_dir = _ensure_temp_dir()
-	_download_url(url, temp_dir)
-	return _move_downloads(temp_dir, _detect_apple_music_dir())
-
-
-def sync_track_to_music(track: Track) -> list[Path]:
-	search_result = fetch(track, download=False)
-	url = search_result.get("webpage_url") or search_result.get("url")
-	if not url:
-		raise RuntimeError(f"Could not resolve a media URL for track: {track.name}")
-	return sync_url_to_music(url)

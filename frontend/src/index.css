@@ -1,0 +1,58 @@
+:root {
+  color: #fff;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  padding: 24px;
+  overflow-x: hidden;
+  background: #121212;
+  color: #fff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  opacity: 0;
+  animation: bodyFadeIn 0.35s ease-out forwards;
+}
+
+#root {
+  width: 100%;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+}
+
+@keyframes bodyFadeIn {
+  to {
+    opacity: 1;
+  }
+}

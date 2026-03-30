@@ -1,7 +1,7 @@
 import json
 import asyncio
 from src.spotify import Spotify
-from src.sync import sync_track_to_music
+from src.download import fetch
 from src.utils.objects import Track, Album, Artist, Playlist
 
 async def main():
@@ -24,8 +24,7 @@ async def main():
     else:
         tracks = result.tracks
     for track in tracks:
-        moved_files = sync_track_to_music(track)
-        print(f"Downloaded and moved {len(moved_files)} file(s) for: {track.name}")
+        fetch(track)
         
 if __name__ == "__main__":
     asyncio.run(main())

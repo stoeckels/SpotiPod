@@ -1,0 +1,11 @@
+{
+  "name": "spotipod",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:start": "npm --prefix frontend run start"
+  }
+}

@@ -90,6 +90,45 @@ The application follows a modular design to allow independent development and te
 
 ---
 
+## Frontend Stack (React + Electron + TypeScript)
+
+The project now includes a desktop frontend in `frontend/` powered by:
+
+- React (UI)
+- TypeScript (type-safe frontend development)
+- Electron (desktop app shell)
+- Vite (frontend build and dev server)
+
+Run from the project root:
+
+```bash
+npm run frontend:install
+npm run frontend:dev
+```
+
+Start the backend API in a separate terminal:
+
+```bash
+python main.py
+```
+
+The frontend calls the API at `http://127.0.0.1:8000` by default.
+Override with `VITE_API_BASE_URL` if needed.
+
+Build the frontend:
+
+```bash
+npm run frontend:build
+```
+
+Run Electron against the built frontend:
+
+```bash
+npm run frontend:start
+```
+
+---
+
 ## Team Members and Roles
 
 For an individual project, all roles are handled by a single developer.
