@@ -11,6 +11,17 @@
   animation: slideFadeIn 0.4s ease-out forwards;
 }
 
+.container.center-search {
+  min-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.container.has-content {
+  min-height: auto;
+}
+
 .hero {
   text-align: center;
   margin-bottom: 20px;
@@ -82,6 +93,10 @@
   cursor: wait;
 }
 
+.input-with-button button.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 .search-icon-img {
   width: 20px;
   height: 20px;
@@ -139,7 +154,6 @@
 .result-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
 }
@@ -148,14 +162,49 @@
   margin: 0;
 }
 
-.result-header a {
-  color: #fff;
-  text-decoration: none;
-  opacity: 0.8;
+.result-cover {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.result-header a:hover {
-  opacity: 1;
+.result-title-group {
+  min-width: 0;
+}
+
+.result-title-group p {
+  margin: 4px 0 0;
+  opacity: 0.72;
+}
+
+.object-action-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.result-header .object-action-button {
+  margin-left: auto;
+}
+
+.object-action-button:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.download-icon-img {
+  width: 20px;
+  height: 20px;
 }
 
 .meta-grid {
@@ -200,14 +249,54 @@
   gap: 12px;
 }
 
+.track-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.track-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.track-info strong,
+.track-info p {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .track-list li p {
   margin: 2px 0 0;
   opacity: 0.7;
 }
 
+.track-duration {
+  flex-shrink: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.track-download-button {
+  width: 40px;
+  height: 40px;
+}
+
+.track-download-button .download-icon-img {
+  width: 20px;
+  height: 20px;
+}
+
 .settings-container {
   width: min(92vw, 460px);
   margin: 0 auto;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: slideFadeIn 0.4s ease-out forwards;
 }
 
 .settings-container h2 {
@@ -287,11 +376,14 @@
 }
 
 .settings-button.back {
-  position: static;
-  width: 44px;
-  height: 44px;
-  margin-bottom: 12px;
-  font-size: 20px;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0;
+  font-size: 24px;
+  z-index: 20;
 }
 
 .back-icon-img {
@@ -306,6 +398,22 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-3px);
   }
 }
 
