@@ -10,7 +10,9 @@ type Track = {
   name: string
   artists: string
   length: number
+  isrc: string
   uri?: string
+  image: string
 }
 
 type SearchResult = {
@@ -41,7 +43,6 @@ function App() {
   const [settingsLoading, setSettingsLoading] = useState(true)
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null)
-  const [settingsError, setSettingsError] = useState<string | null>(null)
   const [tokensReady, setTokensReady] = useState(false)
   const [clientId, setClientId] = useState('')
   const [clientSecret, setClientSecret] = useState('')
@@ -51,7 +52,6 @@ function App() {
 
   const loadSettings = async () => {
     setSettingsLoading(true)
-    setSettingsError(null)
     setSettingsMessage(null)
 
     try {
@@ -59,7 +59,6 @@ function App() {
       const data: SettingsResponse = await response.json()
 
       if (!response.ok) {
-        setSettingsError('Unable to load settings from backend.')
         return
       }
 
@@ -71,8 +70,6 @@ function App() {
       if (!data.tokens_populated) {
         setActivePage('settings')
       }
-    } catch {
-      setSettingsError('Backend not reachable. Start python main.py first.')
     } finally {
       setSettingsLoading(false)
     }
@@ -113,13 +110,13 @@ function App() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data?.error ?? 'Search failed. Check your backend logs.')
+        setError('Search failed.')
         return
       }
 
       setResult(data)
     } catch {
-      setError('Unable to reach backend. Start the Python API on port 8000.')
+      setError(null)
     } finally {
       setLoading(false)
     }
@@ -128,7 +125,6 @@ function App() {
   const onSaveSettings = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSettingsSaving(true)
-    setSettingsError(null)
     setSettingsMessage(null)
 
     try {
@@ -146,7 +142,6 @@ function App() {
 
       const data = await response.json()
       if (!response.ok || !data.ok) {
-        setSettingsError(data?.error ?? 'Failed to save settings.')
         return
       }
 
@@ -156,7 +151,7 @@ function App() {
         setActivePage('search')
       }
     } catch {
-      setSettingsError('Unable to save settings. Is the backend running?')
+      setSettingsMessage(null)
     } finally {
       setSettingsSaving(false)
     }
@@ -321,8 +316,6 @@ function App() {
               </button>
             </form>
           )}
-
-          {settingsError && <p className="status error">{settingsError}</p>}
           {settingsMessage && <p className="status success">{settingsMessage}</p>}
         </section>
       )}

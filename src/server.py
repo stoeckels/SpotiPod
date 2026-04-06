@@ -51,9 +51,18 @@ class Client:
         self._ensure_config_file()
         with open(self.config_path) as f:
             data = json.load(f)
+
+        client_id = data.get("SPOTIFY_CLIENT_ID")
+        if client_id is None:
+            client_id = data.get("spotify_client_id", "")
+
+        client_secret = data.get("SPOTIFY_CLIENT_SECRET")
+        if client_secret is None:
+            client_secret = data.get("spotify_client_secret", "")
+
         return {
-            "SPOTIFY_CLIENT_ID": data.get("SPOTIFY_CLIENT_ID", ""),
-            "SPOTIFY_CLIENT_SECRET": data.get("SPOTIFY_CLIENT_SECRET", ""),
+            "SPOTIFY_CLIENT_ID": client_id,
+            "SPOTIFY_CLIENT_SECRET": client_secret,
             "download_path": data.get("download_path", ""),
         }
 

@@ -1,7 +1,60 @@
 const { app, BrowserWindow } = require('electron');
+const { spawn } = require('child_process');
 const path = require('path');
 
 const isDev = !app.isPackaged;
+let backendProcess = null;
+
+function spawnBackendProcess(command, onFailure) {
+  const projectRoot = path.resolve(__dirname, '..', '..');
+  const child = spawn(command, ['main.py'], {
+    cwd: projectRoot,
+    shell: false,
+    detached: false,
+    stdio: 'inherit',
+  });
+
+  child.on('error', onFailure);
+  return child;
+}
+
+function startBackend() {
+  if (backendProcess) {
+    return;
+  }
+
+  const projectRoot = path.resolve(__dirname, '..', '..');
+  const venvPython = path.join(projectRoot, '.venv', 'bin', 'python');
+
+  backendProcess = spawnBackendProcess(venvPython, (error) => {
+    if (error.code !== 'ENOENT') {
+      return;
+    }
+
+    backendProcess = spawnBackendProcess('python3', (py3Error) => {
+      if (py3Error.code !== 'ENOENT') {
+        return;
+      }
+
+      backendProcess = spawnBackendProcess('python', () => {
+        backendProcess = null;
+      });
+    });
+  });
+
+  backendProcess.on('exit', () => {
+    backendProcess = null;
+  });
+}
+
+function stopBackend() {
+  if (!backendProcess) {
+    return;
+  }
+
+  backendProcess.kill();
+  backendProcess = null;
+}
 
 function createMainWindow() {
   const mainWindow = new BrowserWindow({
@@ -27,6 +80,7 @@ function createMainWindow() {
 }
 
 app.whenReady().then(() => {
+  startBackend();
   createMainWindow();
 
   app.on('activate', () => {
@@ -38,6 +92,11 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    stopBackend();
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  stopBackend();
 });
