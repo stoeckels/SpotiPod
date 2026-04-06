@@ -106,12 +106,6 @@ npm run frontend:install
 npm run frontend:dev
 ```
 
-Start the backend API in a separate terminal:
-
-```bash
-python main.py
-```
-
 The frontend calls the API at `http://127.0.0.1:8000` by default.
 Override with `VITE_API_BASE_URL` if needed.
 
