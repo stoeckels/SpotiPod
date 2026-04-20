@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import os
 import shutil
+import subprocess
 from pathlib import Path
+from typing import Any
 
-import yt_dlp
-
-from .download import fetch
 from .utils.objects import Track
 
 
@@ -37,59 +36,164 @@ def _detect_apple_music_dir() -> Path | None:
 	return None
 
 
-def _ensure_temp_dir() -> Path:
-	temp_dir = Path.cwd() / "temp_downloads"
-	temp_dir.mkdir(parents=True, exist_ok=True)
-	return temp_dir
+def _normalize_mode(mode: str | None) -> str:
+	value = (mode or "standard").strip().lower()
+	if value in {"none", "off"}:
+		return "none"
+	if value in {"enhanced", "apple_music"}:
+		return "enhanced"
+	return "standard"
 
 
-def _handle_metadata(file: Path, track: Track) -> None:
-	if not url.strip():
-		raise ValueError("No URL provided")
+def _resolve_downloaded_file(
+	entry: dict[str, Any],
+	*,
+	output_dir: Path,
+	audio_format: str,
+) -> Path | None:
+	requested = entry.get("requested_downloads")
+	if isinstance(requested, list):
+		for item in requested:
+			if not isinstance(item, dict):
+				continue
+			candidate = item.get("filepath") or item.get("_filename")
+			if candidate and Path(candidate).is_file():
+				return Path(candidate)
 
-	opts = {
-		"format": "bestaudio/best",
-		"outtmpl": str(temp_dir / "%(playlist_index,autonumber)02d - %(title)s.%(ext)s"),
-		"quiet": False,
-		"noplaylist": False,
-		"postprocessors": [
-			{
-				"key": "FFmpegExtractAudio",
-				"preferredcodec": "m4a",
-				"preferredquality": "0",
-			},
-			{"key": "EmbedThumbnail"},
-			{"key": "FFmpegMetadata"},
+	for key in ("filepath", "_filename", "filename"):
+		candidate = entry.get(key)
+		if candidate and Path(candidate).is_file():
+			return Path(candidate)
+
+	ext = audio_format.lower().strip(".")
+	files = sorted(output_dir.glob(f"*.{ext}"), key=lambda p: p.stat().st_mtime, reverse=True)
+	if files:
+		return files[0]
+
+	# Fallback for mismatched extension settings: use the newest common audio file.
+	fallback_files = sorted(
+		[
+			*output_dir.glob("*.mp3"),
+			*output_dir.glob("*.m4a"),
+			*output_dir.glob("*.flac"),
+			*output_dir.glob("*.wav"),
 		],
-		"postprocessor_args": {"ffmpeg": ["-aac_pns", "0", "-metadata", "comment="]},
-		"parse_metadata": [
-			"uploader:%(artist)s",
-			"%(playlist_title)s:%(album)s",
-			"%(playlist_uploader)s:%(album_artist)s",
-			"title:%(title)s",
-			"%(playlist_index)s:%(track_number)s",
-			"%(genre)s:%(genre)s",
-		],
-		"replace_in_metadata": [
-			["album", "NA", ""],
-			["album_artist", "NA", ""],
-			["genre", "NA", ""],
-			["track_number", "NA", ""],
-		],
+		key=lambda p: p.stat().st_mtime,
+		reverse=True,
+	)
+	if fallback_files:
+		return fallback_files[0]
+
+	return None
+
+
+def _safe_meta(value: Any) -> str:
+	if value is None:
+		return ""
+	return str(value).strip()
+
+
+def _apply_metadata(file: Path, track: Track) -> None:
+	if not file.is_file():
+		raise FileNotFoundError(f"Downloaded file not found: {file}")
+
+	title = _safe_meta(track.name)
+	artist = _safe_meta(track.artists)
+	album = _safe_meta(track.album)
+	album_artist = _safe_meta(track.album_artist) or artist
+	track_number = _safe_meta(track.track_number)
+
+	tmp_file = file.with_name(f"{file.stem}.metadata_tmp{file.suffix}")
+	cmd: list[str] = [
+		"ffmpeg",
+		"-y",
+		"-i",
+		str(file),
+		"-map_metadata",
+		"0",
+		"-codec",
+		"copy",
+	]
+
+	metadata_pairs = [
+		("title", title),
+		("artist", artist),
+		("album", album),
+		("album_artist", album_artist),
+		("track", track_number),
+	]
+	for key, value in metadata_pairs:
+		if value:
+			cmd.extend(["-metadata", f"{key}={value}"])
+
+	cmd.append(str(tmp_file))
+
+	try:
+		result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+		if result.returncode != 0:
+			raise RuntimeError((result.stderr or "ffmpeg metadata update failed").strip())
+		tmp_file.replace(file)
+	finally:
+		if tmp_file.exists():
+			tmp_file.unlink(missing_ok=True)
+
+
+def _sync_to_apple_music(file: Path) -> Path | None:
+	apple_music_dir = _detect_apple_music_dir()
+	if apple_music_dir is None:
+		return None
+
+	destination = apple_music_dir / file.name
+	if destination.exists():
+		stem = file.stem
+		suffix = file.suffix
+		counter = 1
+		while destination.exists():
+			destination = apple_music_dir / f"{stem} ({counter}){suffix}"
+			counter += 1
+
+	shutil.copy2(file, destination)
+	return destination
+
+
+def process_downloaded_track(
+	*,
+	track: Track,
+	entry: dict[str, Any],
+	output_dir: str,
+	audio_format: str,
+	metadata_mode: str,
+) -> dict[str, Any]:
+	mode = _normalize_mode(metadata_mode)
+	output_path = Path(output_dir).expanduser()
+	output_path.mkdir(parents=True, exist_ok=True)
+	file = _resolve_downloaded_file(entry, output_dir=output_path, audio_format=audio_format)
+
+	if file is None:
+		return {
+			"file_path": None,
+			"metadata_applied": False,
+			"synced_to_apple_music": False,
+			"apple_music_path": None,
+			"warning": "Downloaded file could not be resolved for metadata processing.",
+		}
+
+	metadata_applied = False
+	apple_music_path: str | None = None
+
+	if mode != "none":
+		_apply_metadata(file, track)
+		metadata_applied = True
+
+	if mode == "enhanced":
+		synced = _sync_to_apple_music(file)
+		if synced is not None:
+			apple_music_path = str(synced)
+
+	return {
+		"file_path": str(file),
+		"metadata_applied": metadata_applied,
+		"synced_to_apple_music": apple_music_path is not None,
+		"apple_music_path": apple_music_path,
 	}
-
-	with yt_dlp.YoutubeDL(opts) as ydl:
-		ydl.download([url])
-
-
-def _move_downloads(temp_dir: Path, music_dir: Path | None) -> list[Path]:
-	if music_dir is None or not music_dir.is_dir():
-		return []
-
-	moved_files: list[Path] = []
-	for src in temp_dir.glob("*.m4a"):
-		dst = music_dir / src.name
-		shutil.move(str(src), str(dst))
-		moved_files.append(dst)
-	return moved_files
 

@@ -33,3 +33,4 @@ notes
 
 *.pyc
 __pycache__/
+downloads/

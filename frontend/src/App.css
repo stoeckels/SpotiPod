@@ -2,6 +2,12 @@
   width: 100%;
 }
 
+a {
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
 .container {
   width: min(92vw, 760px);
   margin: 0 auto;
@@ -51,7 +57,10 @@
   padding: 16px 70px 16px 18px;
   border: none;
   border-radius: 999px;
+  appearance: none;
+  -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.07);
+  background-clip: padding-box;
   color: #fff;
   font-size: 16px;
   outline: none;
@@ -247,6 +256,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .track-cover {
@@ -259,12 +270,13 @@
 
 .track-info {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 0;
 }
 
 .track-info strong,
 .track-info p {
   display: block;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -289,6 +301,18 @@
 .track-download-button .download-icon-img {
   width: 20px;
   height: 20px;
+}
+
+.track-download-spinner {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.track-download-spinner-icon {
+  display: block;
 }
 
 .settings-container {
@@ -324,7 +348,25 @@
   outline: none;
 }
 
+.settings-form select {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.settings-form select option {
+  color: #111;
+}
+
 .settings-form input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.settings-form select:focus {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 

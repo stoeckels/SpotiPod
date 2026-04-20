@@ -55,7 +55,7 @@ class Spotify:
         await self._api_expiry_check()
         parsed = parse_spotify_url(uri)
         if not parsed:
-            raise ValueError("Invalid Spotify URL")
+            return None
 
         resource_type = parsed["type"]
         resource_id = parsed["id"]
