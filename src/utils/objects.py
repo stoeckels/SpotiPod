@@ -20,12 +20,14 @@ class Track:
         self.album: Optional[str] = None
         self.track_number: Optional[int] = None
         self.total_tracks: Optional[int] = None
-        print(data)
         album = data.get("album")
-        if album and album.get("album_type") != "single":
-            self.album = album.get("name")
-            self.track_number = data.get("track_number")
-            self.total_tracks = album.get("total_tracks")
+        if album:
+            album_type = album.get("album_type")
+            total_tracks = int(album.get("total_tracks") or 0)
+            if album_type != "single" or total_tracks > 1:
+                self.album = album.get("name")
+                self.track_number = data.get("track_number")
+                self.total_tracks = album.get("total_tracks")
         self.isrc: Optional[str] = None
         if data.get("external_ids"):
             self.isrc = data["external_ids"]["isrc"]
