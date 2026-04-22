@@ -28,6 +28,9 @@ class Track:
                 self.album = album.get("name")
                 self.track_number = data.get("track_number")
                 self.total_tracks = album.get("total_tracks")
+        self.year: Optional[int] = None
+        if album and album.get("release_date"):
+            self.year = int(str(album["release_date"])[:4])
         self.isrc: Optional[str] = None
         if data.get("external_ids"):
             self.isrc = data["external_ids"]["isrc"]
@@ -39,22 +42,6 @@ class Track:
         self.uri: Optional[str] = None
         if not data["is_local"]:
             self.uri = data["external_urls"]["spotify"]
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "name": self.name,
-            "artists": self.artists,
-            "length": self.length,
-            "formatted_length": self.formatted_length,
-            "album": self.album,
-            "track_number": self.track_number,
-            "total_tracks": self.total_tracks,
-            "isrc": self.isrc,
-            "image": self.image,
-            "uri": self.uri,
-        }
-
 
 class Playlist:
 
@@ -70,17 +57,6 @@ class Playlist:
             self.image = self.tracks[0].image
         self.uri = data["external_urls"]["spotify"]
 
-    def to_dict(self) -> dict:
-        return {
-            "name": self.name,
-            "owner": self.owner,
-            "image": self.image,
-            "uri": self.uri,
-            "tracks": [track.to_dict() for track in self.tracks],
-            "total_tracks": self.total_tracks,
-            "total_duration": self.total_duration,
-        }
-
 class Album:
     def __init__(self, data: dict) -> None:
         self.name: str = data["name"]
@@ -94,18 +70,6 @@ class Album:
         if data.get("external_ids"):
             self.upc = data["external_ids"].get("upc")
 
-    def to_dict(self) -> dict:
-        return {
-            "name": self.name,
-            "artists": self.artists,
-            "image": self.image,
-            "uri": self.uri,
-            "upc": self.upc,
-            "tracks": [track.to_dict() for track in self.tracks],
-            "total_tracks": self.total_tracks,
-            "total_duration": self.total_duration,
-        }
-
 class Artist:
     def __init__(self, data: dict, tracks: dict) -> None:
         self.name: str = (
@@ -115,13 +79,3 @@ class Artist:
         self.tracks = [Track(track, image=self.image) for track in tracks]
         self.total_duration: str = format_summary_duration(sum(track.length for track in self.tracks))
         self.uri: str = data["external_urls"]["spotify"]
-
-    def to_dict(self) -> dict:
-        return {
-            "name": self.name,
-            "image": self.image,
-            "uri": self.uri,
-            "tracks": [track.to_dict() for track in self.tracks],
-            "total_tracks": len(self.tracks),
-            "total_duration": self.total_duration,
-        }
