@@ -31,6 +31,8 @@ class TrackModel(BaseModel):
     album: str | None = None
     album_artist: str | None = None
     track_number: int | None = None
+    total_tracks: int | None = None
+    year: int | None = None
     isrc: str | None = None
     image: str | None = None
     uri: str | None = None
@@ -117,13 +119,13 @@ class Client:
         if result is None:
             return None
         elif isinstance(result, Track):
-            return result.to_dict()
+            return result.__dict__
         elif isinstance(result, Album):
-            return result.to_dict()
+            return result.__dict__
         elif isinstance(result, Artist):
-            return result.to_dict()
+            return result.__dict__
         elif isinstance(result, Playlist):
-            return result.to_dict()
+            return result.__dict__
         return None
 
     def _setup_routes(self):
@@ -177,6 +179,9 @@ class Client:
                             album=item.get("album") or "",
                             album_artist=item.get("album_artist") or item.get("artists", ""),
                             track_number=item.get("track_number") or 0,
+                            total_tracks=item.get("total_tracks") or 0,
+                            year=item.get("year") or 0,
+                            image=item.get("image"),
                             isrc=item.get("isrc"),
                         )
                         try:
