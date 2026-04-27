@@ -527,36 +527,27 @@ function App() {
                 />
 
                 <h2>Download Settings</h2>
-                <label>
-                  <input
-                    type="text"
-                    value={downloadPath}
-                    onChange={(event) => setDownloadPath(event.target.value)}
-                    placeholder="/Users/you/Music/SpotiPod"
-                  />
+                <label className="toggle-row">
+                  Automatic Syncing
+                  <input type="checkbox" id="async-download" className="toggle-switch" />
+                </label>
+                <label className="toggle-row">
+                  Apply Metadata
+                  <input type="checkbox" id="apply-metadata" className="toggle-switch" />
                 </label>
 
                 <label>
-                  Metadata Processing
-                  <select
-                    value={metadataProcessing}
-                    onChange={(event) => setMetadataProcessing(event.target.value)}
-                  >
-                    <option value="none">None</option>
-                    <option value="standard">Standard</option>
-                    <option value="enhanced">Enhanced</option>
-                  </select>
-                </label>
-
-                <label>
-                  Format Selection
+                <h2>Preferred Format</h2>
+                  <p id="instructions">Available sources include only lossy audio, AIFF, FLAC, ALAC, WAV are not recommended but provided</p>
                   <select
                     value={formatSelection}
                     onChange={(event) => setFormatSelection(event.target.value)}
                   >
+                    <option value="aac">AAC</option>
                     <option value="mp3">MP3</option>
-                    <option value="m4a">M4A</option>
-                    <option value="flac">FLAC</option>
+                    <option value="aiff">AIFF</option>
+                    <option value="flac">ALAC</option>
+                    <option value="flac">FLAC (Rockbox)</option>
                     <option value="wav">WAV</option>
                   </select>
                 </label>
