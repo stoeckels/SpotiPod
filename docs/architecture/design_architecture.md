@@ -10,14 +10,14 @@ High-level architecture and data flow for the frontend and backend.
 
 ---
 
-## System Diagram (ASCII)
+## System Diagram
 
 ```
 ┌─────────────────────────────────────────────────┐     NDJSON     ┌─────────────────────────────────────────────────┐
 │                                                 │◀──────────────▶│                                                 │
 │               Electron Shell / React UI         │                │                    FastAPI                      │
-│           (Search, Results, Settings UI)        │◀──────────────▶│               (API / Orchestrator / Router)       │
-│                                                 │     HTTP/WS    │                 (download, metadata)           │
+│           (Search, Results, Settings UI)        │◀──────────────▶│               (API / Orchestrator / Router)     │
+│                                                 │     HTTP/WS    │                 (download, metadata)            │
 └─────────────────────────────────────────────────┘                └─────────────────────────────────────────────────┘
                       │                                                   │
                       │ localStorage                                      │
