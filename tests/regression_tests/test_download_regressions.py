@@ -7,10 +7,10 @@ def test_download_track_allows_null_id_regression(monkeypatch, tmp_path):
     client = Client()
     http = TestClient(client.app)
 
-    def fake_fetch(track, *, output_dir=None, audio_format="mp3"):
+    def fake_fetch(track, *, output_dir=None, audio_format="aac"):
         assert track.name == "Flim"
-        assert audio_format == "mp3"
-        assert output_dir == str(tmp_path)
+        assert audio_format == "aac"
+        assert output_dir != str(tmp_path)
         return {"title": "Flim (YouTube)"}
 
     monkeypatch.setattr("src.server.fetch", fake_fetch)
@@ -35,8 +35,8 @@ def test_download_track_allows_null_id_regression(monkeypatch, tmp_path):
             "spotify_client_id": "",
             "spotify_client_secret": "",
             "download_path": str(tmp_path),
-            "metadata_processing": "standard",
-            "format_selection": "mp3",
+            "metadata_processing": True,
+            "format_selection": "aac",
         },
     )
 

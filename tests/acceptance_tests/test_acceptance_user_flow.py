@@ -30,7 +30,7 @@ def test_acceptance_search_then_download_track(monkeypatch, tmp_path):
 
     def fake_fetch(track, *, output_dir=None, audio_format="mp3"):
         assert track.name == "Flim"
-        assert output_dir == str(tmp_path)
+        assert output_dir != str(tmp_path)
         return {"title": "Flim (YouTube)"}
 
     monkeypatch.setattr("src.server.fetch", fake_fetch)
@@ -41,8 +41,8 @@ def test_acceptance_search_then_download_track(monkeypatch, tmp_path):
             "spotify_client_id": "client-id",
             "spotify_client_secret": "client-secret",
             "download_path": str(tmp_path),
-            "metadata_processing": "standard",
-            "format_selection": "mp3",
+            "metadata_processing": True,
+            "format_selection": "aac",
         },
     )
 

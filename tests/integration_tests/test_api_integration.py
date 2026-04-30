@@ -24,8 +24,8 @@ def test_settings_round_trip_updates_backend_state():
         "spotify_client_id": "client-id",
         "spotify_client_secret": "client-secret",
         "download_path": "/tmp/spotipod",
-        "metadata_processing": "standard",
-        "format_selection": "mp3",
+        "metadata_processing": True,
+        "format_selection": "aac",
     }
 
     put_response = http.put("/api/settings", json=update)
@@ -40,6 +40,6 @@ def test_settings_round_trip_updates_backend_state():
     assert settings["spotify_client_id"] == "client-id"
     assert settings["spotify_client_secret"] == "client-secret"
     assert settings["download_path"] == "/tmp/spotipod"
-    assert settings["metadata_processing"] == "standard"
-    assert settings["format_selection"] == "mp3"
+    assert settings["metadata_processing"] is True
+    assert settings["format_selection"] == "aac"
     assert settings["tokens_populated"] is True
