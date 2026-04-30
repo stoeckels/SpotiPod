@@ -33,6 +33,21 @@ Sprint 2 (More non-trivial features):
 - R.3 Settings must be readily available to the user for format or general app controls.
 - R.4 App must be packaged via Electron, or a similar technology.
 
+### Development Milestones
+
+- Milestone 1: Spotify link intake and metadata formatting.
+  - Covers URL parsing, Spotify API retrieval, and local track object creation.
+- Milestone 2: Audio download and file preparation.
+  - Covers yt-dlp based downloads, format selection, and metadata tagging.
+- Milestone 3: User feedback and error handling.
+  - Covers per-track progress updates, invalid link handling, and failed download states.
+- Milestone 4: Settings and persistence.
+  - Covers credentials entry, download preferences, and saving settings across restarts.
+- Milestone 5: Apple Music and iTunes sync support.
+  - Covers automatic detection of sync folders and moving files into the target location.
+- Milestone 6: Desktop packaging and release readiness.
+  - Covers Electron packaging, build output validation, and distribution preparation.
+
 ---
 
 
