@@ -1,4 +1,4 @@
-from src.spotify import parse_spotify_url
+from src.backend.spotify import parse_spotify_url
 
 
 def test_parse_spotify_url_valid_playlist():

@@ -1,4 +1,4 @@
-from src.server import Client
+from backend.server import Client
 
 def main():
     client = Client()

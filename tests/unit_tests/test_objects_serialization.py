@@ -1,4 +1,4 @@
-from src.utils.objects import Album, Artist, Playlist, Track
+from src.backend.utils.objects import Album, Artist, Playlist, Track
 
 
 def _track_payload(name: str, *, is_local: bool = False, with_album: bool = True):

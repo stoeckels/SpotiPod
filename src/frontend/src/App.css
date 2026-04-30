@@ -126,7 +126,9 @@ a {
   display: none;
 }
 
-.input-with-button button.is-loading .spinner {
+.input-with-button button.is-loading .spinner,
+.object-action-button.is-loading .spinner,
+.track-download-spinner .spinner {
   display: block;
 }
 
@@ -158,6 +160,12 @@ a {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(14px);
   padding: 16px;
+}
+
+.result-card {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: resultFadeIn 0.35s ease-out forwards;
 }
 
 .result-header {
@@ -250,14 +258,43 @@ a {
 
 .track-list li {
   border-radius: 14px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 10px 6px 10px 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
   overflow: hidden;
+}
+
+.track-list-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: resultItemFadeIn 0.35s ease-out forwards;
+}
+
+.track-number {
+  width: 44px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-left: -22px;
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  border-radius: 6px;
+  text-align: right;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+.track-number.is-downloaded {
+  color: #1ed760;
 }
 
 .track-cover {
@@ -467,6 +504,20 @@ a {
 }
 
 @keyframes slideFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes resultFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes resultItemFadeIn {
   to {
     opacity: 1;
     transform: translateY(0);

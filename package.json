@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "npm run frontend:dev",
-    "frontend:install": "npm --prefix frontend install",
-    "frontend:dev": "npm --prefix frontend run dev",
-    "frontend:build": "npm --prefix frontend run build",
-    "frontend:start": "npm --prefix frontend run start"
+    "frontend:install": "npm --prefix src/frontend install",
+    "frontend:dev": "npm --prefix src/frontend run dev",
+    "frontend:build": "npm --prefix src/frontend run build",
+    "frontend:start": "npm --prefix src/frontend run start"
   }
 }

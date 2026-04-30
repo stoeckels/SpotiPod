@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from src.server import Client
+from src.backend.server import Client
 
 
 def test_download_track_allows_null_id_regression(monkeypatch, tmp_path):

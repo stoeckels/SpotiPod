@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
-from src.server import Client
-from src.utils.objects import Track
+from backend.server import Client
+from src.backend.utils.objects import Track
 
 
 class FakeSpotify:

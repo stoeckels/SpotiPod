@@ -1,4 +1,4 @@
-from src.utils.format import format_summary_duration, format_track_duration
+from src.backend.utils.format import format_summary_duration, format_track_duration
 
 
 def test_format_track_duration_rounds_down_and_pads_seconds():

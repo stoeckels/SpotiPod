@@ -18,7 +18,7 @@ class Track:
         self.formatted_length: str = format_track_duration(self.length)
         self.id: str = data["id"]
         self.album: Optional[str] = None
-        self.track_number: Optional[int] = None
+        self.track_index: Optional[int] = None
         self.total_tracks: Optional[int] = None
         album = data.get("album")
         if album:
@@ -26,7 +26,7 @@ class Track:
             total_tracks = int(album.get("total_tracks") or 0)
             if album_type != "single" or total_tracks > 1:
                 self.album = album.get("name")
-                self.track_number = data.get("track_number")
+                self.track_index = data.get("track_number")
                 self.total_tracks = album.get("total_tracks")
         self.year: Optional[int] = None
         if album and album.get("release_date"):

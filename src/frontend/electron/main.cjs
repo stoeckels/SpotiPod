@@ -6,9 +6,9 @@ const isDev = !app.isPackaged;
 let backendProcess = null;
 
 function spawnBackendProcess(command, onFailure) {
-  const projectRoot = path.resolve(__dirname, '..', '..');
+  const backendRoot = path.resolve(__dirname, '..', '..');
   const child = spawn(command, ['main.py'], {
-    cwd: projectRoot,
+    cwd: backendRoot,
     shell: false,
     detached: false,
     stdio: 'inherit',
@@ -23,8 +23,8 @@ function startBackend() {
     return;
   }
 
-  const projectRoot = path.resolve(__dirname, '..', '..');
-  const venvPython = path.join(projectRoot, '.venv', 'bin', 'python');
+  const repoRoot = path.resolve(__dirname, '..', '..', '..');
+  const venvPython = path.join(repoRoot, '.venv', 'bin', 'python');
 
   backendProcess = spawnBackendProcess(venvPython, (error) => {
     if (error.code !== 'ENOENT') {

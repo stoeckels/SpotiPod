@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from src.server import Client
+from src.backend.server import Client
 
 
 def test_search_requires_credentials():
