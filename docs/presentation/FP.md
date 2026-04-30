@@ -1,74 +1,117 @@
 ---
 marp: true
-size: 4:3
-paginate: true
-title: Sprint 1 Retrospective
----
-
-**Sprint 1 Metrics**
-
-- LoC: 306
-- Total number of features for this sprint: 2
-    - Number of features completed: 2
-- Total number of requirements for this sprint: 5
-    - Number of team requirements completed: 5
-- Burndown rate for the features = 100%
-  - (2 / 2) × 100%
-- Burndown rate for the requirements = 100%
-  - (5 / 5) × 100%
+size: 16:9
 
 ---
 
-**Individual Sprint 1 Retrospective**
+## Spotipod
 
-### What Went Wrong:
-- Changes to Spotify’s API access requirements created uncertainty.
-- Minor architectural issues surfaced during development.
-- Limited documentation slowed decision-making at times.
-
----
-### What Went Well:
-- Flexibility in technology and implementation choices.
-- All planned features were completed successfully.
-- Fewer roadblocks than expected throughout the sprint.
-
----
-### Analysis & Improvement Plan:
-- Break features into smaller, more manageable subtasks before development.
-- Document technical decisions and changes as they occur.
-- Allocate buffer time each week to handle unexpected challenges.
+Bridging modern streaming with classic iPod devices
 
 ---
 
-## Weekly Summary
+## Problem Space
 
-- Week 1: Project Setup & Planning
-- Week 2: Spotify API Integration
-- Week 3: Metadata Processing & Format Detection
-- Week 4: Download Pipeline & Local Storage
+- Legacy devices (iPods) provide a focused listening experience.
+- Spotify and modern streaming services don't provide simple offline syncing to these devices.
 
 ---
 
-**Sprint 2 Goal and Metrics**
-
-### Sprint 2 Goals:
-- Complete all planned features and requirements.
-- Improve timeliness and consistency.
-- Finish the sprint strong with a stable build.
+- Download audio (yt-dlp + FFmpeg) into MP3/AAC
+- Organize files for Apple Music / iTunes automatic import
 
 ---
-### Sprint 2 Metrics:
-- Number of team features planned for this sprint: 2
-- Number of team requirements planned for this sprint: 7
+- Spotify API integration for metadata retrieval
+- Metadata application (title, artist, album, year, cover)
+- Streamed progress API and robust error handling
+- File organization for easy device syncing
+## Architecture Overview
+- Frontend: Electron + React — user input, progress, settings
+- Backend: FastAPI — Spotify queries, download orchestration, tagging
+ - Burndown rate for the features = 100%
+	 - (2 / 2) × 100%
+ - Burndown rate for the requirements = 100%
+	 - (7 / 7) × 100%
 
 ---
-### Updated Timeline and Milestones:
-- Week 1: Apple Music & iPod Sync
-- Week 2: UI/UX & Electron Setup
-- Week 3: UI Polish & Testing
-- Week 4: Final Build & Packaging
+
+## Core Components (code pointers)
+
+- `src/backend/spotify.py` — URL parsing & Spotify API fetching
+- `src/backend/utils/objects.py` — `Track`, `Album`, `Playlist`, `Artist`
+- `src/backend/download.py` — yt-dlp wrapper and file discovery
+- `src/backend/sync.py` — applies metadata and cover art
+- `src/backend/server.py` — FastAPI endpoints for search & download
 
 ---
-### Any Additional Changes from the Initial Plan:
-- Implement responsible error handling throughout development.
-- Develop more in-depth and structured testing.
+
+## Sprint 1 — Metrics & Retrospective
+
+- LoC: ~306
+- Features planned/completed: 2/2 (100%)
+- Requirements completed: 5/5 (100%)
+
+What went well:
+- Completed sprint features; flexible tech choices
+What went wrong:
+- Spotify API changes caused uncertainty; documentation gaps
+
+---
+
+## Weekly Breakdown
+
+- Week 1: Project setup & architecture
+- Week 2: Spotify integration
+- Week 3: Metadata handling & format detection
+- Week 4: Download pipeline & local storage
+
+---
+
+## Sprint 2 Roadmap
+
+- Apple Music / iPod sync automation
+- Electron UI polish & packaging
+- Expanded testing and CI
+- Packaging & distribution (macOS first)
+
+---
+
+## Demo Flow (User Journey)
+
+1. Enter Spotify URL in the app
+2. Server fetches metadata and lists tracks
+3. User selects tracks and starts download
+4. Backend downloads, tags, and moves files to sync folder
+5. User syncs device with Apple Music / iTunes
+
+---
+
+## Testing Strategy
+
+- Unit tests: URL parsing, object serialization, format utilities
+- Integration tests: end-to-end download + tagging
+- Manual tests: verify ID3/MP4 tags and APIC cover frames
+
+---
+
+## Risks & Mitigations
+
+- Spotify API changes: add monitoring and integration tests
+- yt-dlp reliability: retries and alternative search heuristics
+- Metadata mismatches: log raw metadata for debugging
+
+---
+
+## Next Steps / Ask
+
+- Finish Electron UI and packaging
+- Add CI for download + tagging integration tests
+- Run real-device sync testing with iPods
+
+---
+
+# Thank you
+
+Questions?
+
+Contact: Project lead (sam)
