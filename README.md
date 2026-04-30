@@ -67,9 +67,6 @@ The application follows a modular design to allow independent development and te
 
 ## Testing
 
-
-
-
 - Unit Tests  
   - Spotify API response handling  
   - URL validation  

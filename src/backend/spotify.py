@@ -84,14 +84,21 @@ class Spotify:
                 page = await resp.json(loads=json.loads)
             return Playlist(playlist_data, tracks)
         
-        parser_map = {
-            "track": Track,
-            "album": Album,
-            "artist": Artist,
-        }
+        # Choose parser based on the requested resource type (track/album/artist)
+        if resource_type == "track":
+            return Track(data)
 
-        parser_class = parser_map.get(data.get("type"))
-        if not parser_class:
-            return data
+        if resource_type == "album":
+            return Album(data)
 
-        return parser_class(data)
+        if resource_type == "artist":
+            # Fetch artist top tracks (market required by Spotify API)
+            top_tracks_url = f"https://api.spotify.com/v1/artists/{resource_id}/top-tracks?market=US"
+            resp = await self.session.get(top_tracks_url, headers=self._api_headers)
+            resp.raise_for_status()
+            top_data = await resp.json(loads=json.loads)
+            tracks = top_data.get("tracks", [])
+            return Artist(data, tracks)
+
+        # Fallback: return raw data if unknown
+        return data

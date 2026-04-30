@@ -1,10 +1,10 @@
 import json
+import os
 import shutil
 import tempfile
 import fastapi
 import uvicorn
 from typing import Any
-from types import SimpleNamespace
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
@@ -12,12 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from .download import fetch_track
 from .sync import apply_metadata, detect_apple_music_dir
 from .spotify import Spotify
-from .utils.objects import Track, Album, Artist, Playlist
+from .utils.objects import Track
 
 class SettingsUpdateRequest(BaseModel):
     spotify_client_id: str
     spotify_client_secret: str
-    download_path: str = ""
     metadata: bool = True
     auto_sync: bool = True
     format: str = "aac"
@@ -30,8 +29,11 @@ class Client:
             "metadata": True,
             "auto_sync": True,
             "format": "aac",
-            "sync_dir": str(detect_apple_music_dir() or ""),
+            "sync_dir": detect_apple_music_dir() or ""
         }
+        # State: track the last search result so client can reference it by key
+        self.current_search_result: dict[str, Any] | None = None
+        self.current_tracks_by_key: dict[str, Track] = {}
         self.spotify = None
         self.app = fastapi.FastAPI()
         self.app.add_middleware(
@@ -71,48 +73,66 @@ class Client:
                 )
             try:
                 results = await self.spotify.search(uri)
-                return results.__dict__ if results else None
+                if not results:
+                    return None
+                
+                # Store result in server state for later reference
+                result_dict = results.__dict__ if results else {}
+                self.current_search_result = result_dict
+                
+                # Index tracks by key (id) for quick lookup on download
+                self.current_tracks_by_key = {}
+                
+                # If it's a single track
+                if hasattr(results, 'isrc') and hasattr(results, 'name'):
+                    track_id = getattr(results, 'id', None) or getattr(results, 'isrc', None)
+                    if track_id:
+                        self.current_tracks_by_key[track_id] = results
+                
+                # If it has multiple tracks (album, playlist, artist)
+                if hasattr(results, 'tracks'):
+                    for track in results.tracks:
+                        track_id = getattr(track, 'id', None) or getattr(track, 'isrc', None)
+                        if track_id:
+                            self.current_tracks_by_key[track_id] = track
+                
+                return result_dict
             except Exception as e:
                 return JSONResponse(status_code=500, content={"error": str(e)})
 
         @self.app.post("/api/download")
         async def download(payload: dict):
-            """Download a track, album, playlist, or artist's top tracks."""
+            """Download track(s) by key.
+            
+            Client sends: {"track_key": "isrc_or_id"}
+            Server resolves from stored state (from last search).
+            """
             try:
-                data = payload.get("object_data", {})
-                object_type = (payload.get("object_type") or "").strip().lower()
-
-                if object_type == "track":
-                    tracks = [data]
-                else:
-                    tracks = data.get("tracks", [])
-
-                if not tracks:
+                track_key = payload.get("track_key")
+                if not track_key:
                     return JSONResponse(
                         status_code=400,
-                        content={"ok": False, "error": "No tracks found to download."},
+                        content={"ok": False, "error": "track_key is required. Search for a track first."},
                     )
-
+                
+                if track_key not in self.current_tracks_by_key:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"ok": False, "error": f"Track key '{track_key}' not found in server state. Search for a track first."},
+                    )
+                
+                track_obj = self.current_tracks_by_key[track_key]
+                tracks = [track_obj]
                 format = self.config["format"]
 
                 async def stream_downloads():
                     results: list[dict[str, Any]] = []
-                    for item in tracks:
-                        track_obj = SimpleNamespace(
-                            name=item.get("name", "Unknown Track"),
-                            artists=item.get("artists", ""),
-                            album=item.get("album") or "",
-                            album_artist=item.get("album_artist") or item.get("artists", ""),
-                            track_number=item.get("track_number") or 0,
-                            total_tracks=item.get("total_tracks") or 0,
-                            year=item.get("year") or 0,
-                            image=item.get("image"),
-                            isrc=item.get("isrc"),
-                        )
+                    for track_obj in tracks:
+                        result_track_key = getattr(track_obj, "id", None) or getattr(track_obj, "isrc", None)
                         yield json.dumps(
                             {
                                 "type": "track-start",
-                                "track_key": track_obj.isrc,
+                                "track_key": result_track_key,
                                 "track": track_obj.name,
                             }
                         ) + "\n"
@@ -120,10 +140,21 @@ class Client:
                             try:
                                 file = await fetch_track(track_obj, temp_dir, format)
                                 await apply_metadata(file, track_obj)
-                                shutil.move(file, self.config["sync_dir"])
+                                
+                                # Determine destination directory
+                                dest_dir = self.config.get("sync_dir") or ""
+                                if not dest_dir:
+                                    # Fallback to a default if sync_dir is not set
+                                    dest_dir = os.path.expanduser("~/Music/SpotiPod Downloads")
+                                    os.makedirs(dest_dir, exist_ok=True)
+                                
+                                # Move file to destination
+                                dest_path = os.path.join(dest_dir, file.name)
+                                shutil.move(str(file), dest_path)
+                                
                                 result = {
                                     "track": track_obj.name,
-                                    "track_key": track_obj.isrc,
+                                    "track_key": result_track_key,
                                     "ok": True,
                                 }
                                 results.append(result)
@@ -131,7 +162,7 @@ class Client:
                             except Exception as exc:
                                 result = {
                                     "track": track_obj.name,
-                                    "track_key": track_obj.isrc,
+                                    "track_key": result_track_key,
                                     "ok": False,
                                     "error": str(exc),
                                 }
@@ -159,7 +190,6 @@ class Client:
             return {
                 "spotify_client_id": self.config["SPOTIFY_CLIENT_ID"],
                 "spotify_client_secret": self.config["SPOTIFY_CLIENT_SECRET"],
-                "download_path": self.config["download_path"],
                 "metadata": bool(self.config.get("metadata", False)),
                 "auto_sync": bool(self.config.get("auto_sync", False)),
                 "sync_dir": detect_apple_music_dir() is not None,
@@ -175,7 +205,6 @@ class Client:
                 self._refresh_spotify_client()
 
             self.config.update({
-                "download_path": payload.download_path.strip(),
                 "metadata": bool(payload.metadata),
                 "auto_sync": bool(payload.auto_sync),
                 "format": payload.format.strip() or "aac",
@@ -186,4 +215,4 @@ class Client:
             }
     
     def run(self, host: str = "0.0.0.0", port: int = 8000):
-        uvicorn.run(self.app, host=host, port=port, log_level=None)       
+        uvicorn.run(self.app, host=host, port=port)       

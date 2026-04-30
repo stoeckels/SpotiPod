@@ -11,71 +11,72 @@ __all__ = (
 )
 
 class Track:
-    def __init__(self, data: dict, image: Optional[str] = None) -> None:
-        self.name: str = data["name"]
-        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
-        self.length: float = data["duration_ms"]
+    def __init__(self, data: dict, album: Optional["Album"] = None, image: Optional[str] = None) -> None:
+        self.name: str = data.get("name", "Unknown")
+        self.artists: str = ", ".join(artist.get("name", "") for artist in data.get("artists", []))
+        self.length: float = data.get("duration_ms", 0)
         self.formatted_length: str = format_track_duration(self.length)
-        self.id: str = data["id"]
+        self.id: str = data.get("id")
         self.album: Optional[str] = None
-        self.track_index: Optional[int] = None
-        self.total_tracks: Optional[int] = None
-        album = data.get("album")
-        if album:
-            album_type = album.get("album_type")
-            total_tracks = int(album.get("total_tracks") or 0)
-            if album_type != "single" or total_tracks > 1:
-                self.album = album.get("name")
-                self.track_index = data.get("track_number")
-                self.total_tracks = album.get("total_tracks")
-        self.year: Optional[int] = None
-        if album and album.get("release_date"):
-            self.year = int(str(album["release_date"])[:4])
+        self.total_tracks: Optional[int] = 0
+        self.year: Optional[int] = data.get("album", {}).get("release_date", "")[:4]
+        self.track_index: int = data.get("track_number", 0)
+        
         self.isrc: Optional[str] = None
         if data.get("external_ids"):
-            self.isrc = data["external_ids"]["isrc"]
+            self.isrc = data["external_ids"].get("isrc")
 
-        self.image: Optional[str] = image
-        if data.get("album") and data["album"].get("images"):
-            self.image = data["album"]["images"][0]["url"]
+        if album:
+            self.album = getattr(album, "name", None)
+            self.total_tracks = getattr(album, "total_tracks", 0)
+            self.image = getattr(album, "image", None)
+            self.year = getattr(album, "year", None)
+        elif image:
+            self.image = image
+        else:
+            # defensive access into nested album images
+            try:
+                self.image = data["album"]["images"][0]["url"]
+            except Exception:
+                self.image = ""
+            
 
         self.uri: Optional[str] = None
-        if not data["is_local"]:
-            self.uri = data["external_urls"]["spotify"]
+        if not data.get("is_local", False):
+            ext = data.get("external_urls") or {}
+            self.uri = ext.get("spotify")
 
 class Playlist:
 
     def __init__(self, data: dict, tracks: List[Track]) -> None:
-        self.name: str = data["name"]
+        self.name: str = data.get("name", "")
         self.tracks = tracks
-        self.owner: str = data["owner"]["display_name"]
-        self.total_tracks: int = data["tracks"]["total"]
+        self.owner: str = (data.get("owner") or {}).get("display_name", "")
+        self.total_tracks: int = (data.get("tracks") or {}).get("total", len(self.tracks))
         self.total_duration: str = format_summary_duration(sum(track.length for track in self.tracks))
         if data.get("images") and len(data["images"]):
-            self.image = data["images"][0]["url"]
+            self.image = data["images"][0].get("url", "")
         else:
-            self.image = self.tracks[0].image
-        self.uri = data["external_urls"]["spotify"]
+            self.image = getattr(self.tracks[0], "image", "")
+        self.uri = (data.get("external_urls") or {}).get("spotify", "")
 
 class Album:
     def __init__(self, data: dict) -> None:
-        self.name: str = data["name"]
-        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
-        self.image: str = data["images"][0]["url"]
-        self.tracks = [Track(track, image=self.image) for track in data["tracks"]["items"]]
-        self.total_tracks: int = data["total_tracks"]
+        self.name: str = data.get("name", "")
+        self.artists: str = ", ".join(artist.get("name", "") for artist in data.get("artists", []))
+        self.image: str = (data.get("images") or [{}])[0].get("url", "")
+        self.total_tracks: int = data.get("total_tracks", (data.get("tracks") or {}).get("total", 0))
+        self.year: int = int((data.get("release_date", "0")[:4]) or 0)
+        items = (data.get("tracks") or {}).get("items", [])
+        self.tracks = [Track(track, album=self) for track in items]
         self.total_duration: str = format_summary_duration(sum(track.length for track in self.tracks))
-        self.uri: str = data["external_urls"]["spotify"]
-        self.upc: Optional[str] = None
-        if data.get("external_ids"):
-            self.upc = data["external_ids"].get("upc")
+        self.uri: str = (data.get("external_urls") or {}).get("spotify", "")
 
 class Artist:
-    def __init__(self, data: dict, tracks: dict) -> None:
-        self.name: str = (
-            f"Top tracks for {data['name']}"
-        )
-        self.image: str = data["images"][0]["url"]
+    def __init__(self, data: dict, tracks: List[dict]) -> None:
+        self.name: str = f"Top tracks for {data.get('name', '')}"
+        self.image: str = (data.get("images") or [{}])[0].get("url", "")
+        # tracks is a list of track dicts from Spotify top-tracks endpoint
         self.tracks = [Track(track, image=self.image) for track in tracks]
         self.total_duration: str = format_summary_duration(sum(track.length for track in self.tracks))
-        self.uri: str = data["external_urls"]["spotify"]
+        self.uri: str = (data.get("external_urls") or {}).get("spotify", "")

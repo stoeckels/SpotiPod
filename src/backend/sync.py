@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import os
-import shutil
 import urllib.request
 from pathlib import Path
-from typing import Any
 
 from mutagen.id3 import APIC, ID3, ID3NoHeaderError, TALB, TPE1, TPE2, TIT2, TRCK, TDRC
 from mutagen.mp4 import MP4, MP4Cover
@@ -45,20 +42,27 @@ def _apply_metadata_sync(file: Path, track: Track) -> None:
 	cover_bytes, cover_type = _download_cover_art(track.image)
 
 	if file.suffix.lower() == ".m4a":
-		audio = MP4(file)
-		audio["\xa9nam"] = [track.name]
-		audio["\xa9ART"] = [track.artists]
-		audio["\xa9alb"] = [track.album]
-		if track.track_number:
-			try:
-				audio["trkn"] = [(int(track.track_number), track.total_tracks or 0)]
-			except (ValueError, TypeError):
-				pass
-		if track.year:
-			audio["\xa9day"] = [str(track.year)]
-		audio["covr"] = [MP4Cover(cover_bytes, imageformat=_cover_format_from_content_type(cover_type))]
-		audio.save()
-		return
+		# Try MP4 tagging; if the file isn't a valid MP4/M4A container, fall back to ID3-style tagging
+		try:
+			audio = MP4(file)
+
+			audio["\xa9nam"] = track.name
+
+			audio["\xa9ART"] = track.artists
+			audio["\xa9alb"] = track.album
+			audio["\xa9day"] = str(track.year)
+
+			# Track number (support multiple possible attribute names)
+			if track.total_tracks != 0:
+				audio["trkn"] = [(track.track_index, track.total_tracks)]
+			
+			# Cover art
+			audio["covr"] = [MP4Cover(cover_bytes)]
+			audio.save()
+			return
+		except Exception as e:
+			print(f"[sync] MP4 tagging failed for {file}: {e}")
+			# fall through to MP3/ID3 tagging below
 
 	if file.suffix.lower() == ".mp3":
 		try:
@@ -83,6 +87,8 @@ def _apply_metadata_sync(file: Path, track: Track) -> None:
 	audio.add(TALB(encoding=3, text=track.album))
 	audio.add(TPE2(encoding=3, text=track.album_artist))
 	audio.add(TRCK(encoding=3, text=str(track.track_number)))
+	audio.add(TDRC(encoding=3, text=str(track.year)))
+
 	audio.save(file)
 
 

@@ -48,12 +48,9 @@ type Artist = {
   total_duration: string
 }
 
-type DownloadObjectType = 'track' | 'playlist' | 'album' | 'artist'
-
 type SettingsResponse = {
   spotify_client_id: string
   spotify_client_secret: string
-  download_path: string
   metadata: boolean
   auto_sync: boolean
   apple_music_folder_found: boolean
@@ -83,7 +80,6 @@ function App() {
   const [tokensReady, setTokensReady] = useState(false)
   const [clientId, setClientId] = useState('')
   const [clientSecret, setClientSecret] = useState('')
-  const [downloadPath, setDownloadPath] = useState('')
   const [metadataProcessing, setMetadataProcessing] = useState(true)
   const [autoSync, setAutoSync] = useState(true)
   const [appleMusicFolderFound, setAppleMusicFolderFound] = useState(false)
@@ -97,7 +93,6 @@ function App() {
     if (!result) return []
     return isTrack(result) ? [result] : result.tracks ?? []
   }, [result])
-  const isAlbumResult = result ? isAlbum(result) : false
   const hasSearchContent = Boolean(result || (settingsLoaded && !tokensReady))
 
   const updateTrackDownloadingState = (trackKeys: string[], isDownloading: boolean) => {
@@ -127,7 +122,7 @@ function App() {
 
     updateTrackDownloadingState([trackKey], true)
     try {
-      const ok = await requestDownload('track', track)
+      const ok = await requestDownloadByKey(trackKey)
 
       if (ok) {
         updateTrackDownloadedState([trackKey])
@@ -139,7 +134,7 @@ function App() {
     }
   }
 
-  const requestDownload = async (objectType: DownloadObjectType, objectData: SearchResult) => {
+  const requestDownloadByKey = async (trackKey: string) => {
     setError(null)
 
     try {
@@ -149,8 +144,7 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          object_type: objectType,
-          object_data: objectData,
+          track_key: trackKey,
         }),
       })
 
@@ -316,7 +310,6 @@ function App() {
     if (cachedSettings) {
       setClientId(cachedSettings.spotify_client_id ?? '')
       setClientSecret(cachedSettings.spotify_client_secret ?? '')
-      setDownloadPath(cachedSettings.download_path ?? '')
       setMetadataProcessing(Boolean(cachedSettings.metadata ?? true))
       setAutoSync(Boolean(cachedSettings.auto_sync ?? true))
       setAppleMusicFolderFound(Boolean(cachedSettings.apple_music_folder_found ?? false))
@@ -340,7 +333,6 @@ function App() {
                 body: JSON.stringify({
                 spotify_client_id: cachedSettings.spotify_client_id ?? '',
                 spotify_client_secret: cachedSettings.spotify_client_secret ?? '',
-                download_path: cachedSettings.download_path ?? '',
                 metadata: cachedSettings.metadata ?? true,
                 format: cachedSettings.format ?? 'aac',
               }),
@@ -358,7 +350,6 @@ function App() {
           const data: SettingsResponse = await response.json()
           setClientId(data.spotify_client_id ?? '')
           setClientSecret(data.spotify_client_secret ?? '')
-          setDownloadPath(data.download_path ?? '')
           setMetadataProcessing(Boolean(data.metadata ?? true))
           setAutoSync(Boolean((data as any).auto_sync ?? true))
           setAppleMusicFolderFound(Boolean(data.apple_music_folder_found ?? false))
@@ -464,7 +455,6 @@ function App() {
         body: JSON.stringify({
           spotify_client_id: clientId,
           spotify_client_secret: clientSecret,
-          download_path: downloadPath,
           metadata_processing: metadataProcessing,
           auto_sync: autoSync,
           format_selection: formatSelection,
@@ -481,7 +471,6 @@ function App() {
         JSON.stringify({
           spotify_client_id: clientId,
           spotify_client_secret: clientSecret,
-          download_path: downloadPath,
           metadata_processing: metadataProcessing,
           auto_sync: autoSync,
           format_selection: formatSelection,
@@ -591,7 +580,7 @@ function App() {
                           >
                             {index + 1}
                           </span>
-                          {!isAlbumResult && track.image && (
+                          {isPlaylist(result) && track.image && (
                             <img
                               className="track-cover"
                               src={track.image}
